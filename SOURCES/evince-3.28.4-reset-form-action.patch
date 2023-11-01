@@ -1,0 +1,395 @@
+From fe9573da1278463a76b685c5cb3116d6e8241e27 Mon Sep 17 00:00:00 2001
+From: Marek Kasik <mkasik@redhat.com>
+Date: Wed, 22 Jul 2020 16:26:17 +0200
+Subject: [PATCH] Handle reset form action
+
+Add new type of action EV_LINK_ACTION_TYPE_RESET_FORM for EvLinkAction
+together with properties "reset-fields" and "exclude-reset-fields".
+The properties controls which fields are reset and are set in PDF document.
+This commit extends EvDocumentFormsInterface with new method "reset_form".
+Check for poppler 0.90.0 or higher when calling its methods for resetting
+of forms.
+
+Issue #46
+---
+ backend/pdf/ev-poppler.cc       | 29 ++++++++++
+ libdocument/ev-document-forms.c | 10 ++++
+ libdocument/ev-document-forms.h |  4 ++
+ libdocument/ev-link-action.c    | 81 ++++++++++++++++++++++++++++++++-
+ libdocument/ev-link-action.h    | 51 +++++++++++----------
+ libview/ev-view.c               |  4 ++
+ shell/ev-window.c               | 15 ++++++
+ 7 files changed, 166 insertions(+), 24 deletions(-)
+
+diff --git a/backend/pdf/ev-poppler.cc b/backend/pdf/ev-poppler.cc
+index ee9a5c9f..efffef0b 100644
+--- a/backend/pdf/ev-poppler.cc
++++ b/backend/pdf/ev-poppler.cc
+@@ -1721,6 +1721,23 @@ ev_link_from_action (PdfDocument   *pdf_document,
+ 	        case POPPLER_ACTION_JAVASCRIPT:
+ 			unimplemented_action = "POPPLER_ACTION_JAVASCRIPT";
+ 			break;
++#if POPPLER_CHECK_VERSION(0, 90, 0)
++	        case POPPLER_ACTION_RESET_FORM: {
++			gboolean  exclude_reset_fields;
++			GList    *reset_fields = NULL;
++			GList    *iter;
++
++			for (iter = action->reset_form.fields; iter; iter = iter->next)
++				reset_fields = g_list_prepend (reset_fields, g_strdup ((char *) iter->data));
++
++			exclude_reset_fields = action->reset_form.exclude;
++
++			/* The action takes the ownership of the list */
++			ev_action = ev_link_action_new_reset_form (g_list_reverse (reset_fields),
++								   exclude_reset_fields);
++			break;
++		}
++#endif
+ 	        case POPPLER_ACTION_UNKNOWN:
+ 			unimplemented_action = "POPPLER_ACTION_UNKNOWN";
+ 	}
+@@ -2845,6 +2860,17 @@ pdf_document_forms_document_is_modified (EvDocumentForms *document)
+ 	return PDF_DOCUMENT (document)->forms_modified;
+ }
+ 
++static void
++pdf_document_forms_reset_form (EvDocumentForms *document,
++                               EvLinkAction    *action)
++{
++#if POPPLER_CHECK_VERSION(0, 90, 0)
++	poppler_document_reset_form (PDF_DOCUMENT (document)->document,
++	                             ev_link_action_get_reset_fields (action),
++	                             ev_link_action_get_exclude_reset_fields (action));
++#endif
++}
++
+ static gchar *
+ pdf_document_forms_form_field_text_get_text (EvDocumentForms *document,
+ 					     EvFormField     *field)
+@@ -3044,6 +3068,7 @@ pdf_document_document_forms_iface_init (EvDocumentFormsInterface *iface)
+ {
+ 	iface->get_form_fields = pdf_document_forms_get_form_fields;
+ 	iface->document_is_modified = pdf_document_forms_document_is_modified;
++	iface->reset_form = pdf_document_forms_reset_form;
+ 	iface->form_field_text_get_text = pdf_document_forms_form_field_text_get_text;
+ 	iface->form_field_text_set_text = pdf_document_forms_form_field_text_set_text;
+ 	iface->form_field_button_set_state = pdf_document_forms_form_field_button_set_state;
+diff --git a/libdocument/ev-document-forms.c b/libdocument/ev-document-forms.c
+index 19417c77..1fe983b1 100644
+--- a/libdocument/ev-document-forms.c
++++ b/libdocument/ev-document-forms.c
+@@ -45,6 +45,16 @@ ev_document_forms_document_is_modified (EvDocumentForms *document_forms)
+ 	return (iface->document_is_modified) ? iface->document_is_modified (document_forms) : FALSE;
+ }
+ 
++void
++ev_document_forms_reset_form (EvDocumentForms *document_forms,
++                              EvLinkAction    *action)
++{
++	EvDocumentFormsInterface *iface = EV_DOCUMENT_FORMS_GET_IFACE (document_forms);
++
++	if (iface->reset_form)
++		iface->reset_form (document_forms, action);
++}
++
+ gchar *
+ ev_document_forms_form_field_text_get_text (EvDocumentForms *document_forms, 
+ 					    EvFormField     *field)
+diff --git a/libdocument/ev-document-forms.h b/libdocument/ev-document-forms.h
+index 198f3eb5..f78dba6b 100644
+--- a/libdocument/ev-document-forms.h
++++ b/libdocument/ev-document-forms.h
+@@ -82,6 +82,8 @@ struct _EvDocumentFormsInterface
+ 							       const gchar       *text);
+ 	gchar         *(* form_field_choice_get_text)         (EvDocumentForms   *document_forms,
+ 							       EvFormField       *field);
++	void           (* reset_form)                         (EvDocumentForms   *document_forms,
++							       EvLinkAction      *action);
+ };
+ 
+ GType          ev_document_forms_get_type                           (void) G_GNUC_CONST;
+@@ -122,6 +124,8 @@ void 	       ev_document_forms_form_field_choice_set_text         (EvDocumentFor
+ 								     const gchar       *text);
+ gchar         *ev_document_forms_form_field_choice_get_text         (EvDocumentForms   *document_forms,
+ 								     EvFormField       *field);
++void           ev_document_forms_reset_form                         (EvDocumentForms   *document_forms,
++								     EvLinkAction      *action);
+ 
+ G_END_DECLS
+ 
+diff --git a/libdocument/ev-link-action.c b/libdocument/ev-link-action.c
+index 0e7761d7..cbc5d620 100644
+--- a/libdocument/ev-link-action.c
++++ b/libdocument/ev-link-action.c
+@@ -32,7 +32,9 @@ enum {
+ 	PROP_NAME,
+ 	PROP_SHOW_LIST,
+ 	PROP_HIDE_LIST,
+-	PROP_TOGGLE_LIST
++	PROP_TOGGLE_LIST,
++	PROP_RESET_FIELDS,
++	PROP_EXCLUDE_RESET_FIELDS
+ };
+ 
+ struct _EvLinkAction {
+@@ -55,6 +57,8 @@ struct _EvLinkActionPrivate {
+ 	GList            *show_list;
+ 	GList            *hide_list;
+ 	GList            *toggle_list;
++	GList            *reset_fields;
++	gboolean          exclude_reset_fields;
+ };
+ 
+ G_DEFINE_TYPE (EvLinkAction, ev_link_action, G_TYPE_OBJECT)
+@@ -155,6 +159,34 @@ ev_link_action_get_toggle_list (EvLinkAction *self)
+ 	return self->priv->toggle_list;
+ }
+ 
++/**
++ * ev_link_action_get_reset_fields:
++ * @self: an #EvLinkAction
++ *
++ * Returns: (transfer none) (element-type gchar *): a list of fields to reset
++ */
++GList *
++ev_link_action_get_reset_fields (EvLinkAction *self)
++{
++	g_return_val_if_fail (EV_IS_LINK_ACTION (self), NULL);
++
++	return self->priv->reset_fields;
++}
++
++/**
++ * ev_link_action_get_exclude_reset_fields:
++ * @self: an #EvLinkAction
++ *
++ * Returns: whether to exclude reset fields when resetting form
++ */
++gboolean
++ev_link_action_get_exclude_reset_fields (EvLinkAction *self)
++{
++	g_return_val_if_fail (EV_IS_LINK_ACTION (self), NULL);
++
++	return self->priv->exclude_reset_fields;
++}
++
+ static void
+ ev_link_action_get_property (GObject    *object,
+ 			     guint       prop_id,
+@@ -193,6 +225,12 @@ ev_link_action_get_property (GObject    *object,
+ 	        case PROP_TOGGLE_LIST:
+ 			g_value_set_pointer (value, self->priv->toggle_list);
+ 			break;
++	        case PROP_RESET_FIELDS:
++			g_value_set_pointer (value, self->priv->reset_fields);
++			break;
++	        case PROP_EXCLUDE_RESET_FIELDS:
++			g_value_set_boolean (value, self->priv->exclude_reset_fields);
++			break;
+ 	        default:
+ 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object,
+ 							   prop_id,
+@@ -241,6 +279,12 @@ ev_link_action_set_property (GObject      *object,
+ 	        case PROP_TOGGLE_LIST:
+ 			self->priv->toggle_list = g_value_get_pointer (value);
+ 			break;
++	        case PROP_RESET_FIELDS:
++			self->priv->reset_fields = g_value_get_pointer (value);
++			break;
++	        case PROP_EXCLUDE_RESET_FIELDS:
++			self->priv->exclude_reset_fields = g_value_get_boolean (value);
++			break;
+ 	        default:
+ 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object,
+ 							   prop_id,
+@@ -296,6 +340,11 @@ ev_link_action_finalize (GObject *object)
+ 		priv->toggle_list = NULL;
+ 	}
+ 
++	if (priv->reset_fields) {
++		g_list_free_full (priv->reset_fields, g_free);
++		priv->reset_fields = NULL;
++	}
++
+ 	G_OBJECT_CLASS (ev_link_action_parent_class)->finalize (object);
+ }
+ 
+@@ -309,6 +358,8 @@ ev_link_action_init (EvLinkAction *ev_link_action)
+ 	ev_link_action->priv->filename = NULL;
+ 	ev_link_action->priv->params = NULL;
+ 	ev_link_action->priv->name = NULL;
++	ev_link_action->priv->reset_fields = NULL;
++	ev_link_action->priv->exclude_reset_fields = FALSE;
+ }
+ 
+ static void
+@@ -402,6 +453,23 @@ ev_link_action_class_init (EvLinkActionClass *ev_link_action_class)
+ 							       G_PARAM_READWRITE |
+ 							       G_PARAM_CONSTRUCT_ONLY |
+                                                                G_PARAM_STATIC_STRINGS));
++	g_object_class_install_property (g_object_class,
++					 PROP_RESET_FIELDS,
++					 g_param_spec_pointer ("reset-fields",
++							       "ResetFields",
++							       "The list of fields that should be/should not be reset",
++							       G_PARAM_READWRITE |
++							       G_PARAM_CONSTRUCT_ONLY |
++							       G_PARAM_STATIC_STRINGS));
++	g_object_class_install_property (g_object_class,
++					 PROP_EXCLUDE_RESET_FIELDS,
++					 g_param_spec_boolean ("exclude-reset-fields",
++							       "ExcludeResetFields",
++							       "Whether to exclude/include reset-fields when resetting form",
++							       FALSE,
++							       G_PARAM_READWRITE |
++							       G_PARAM_CONSTRUCT_ONLY |
++							       G_PARAM_STATIC_STRINGS));
+ }
+ 
+ EvLinkAction *
+@@ -474,6 +542,17 @@ ev_link_action_new_layers_state (GList *show_list,
+ 					     NULL));
+ }
+ 
++EvLinkAction *
++ev_link_action_new_reset_form (GList    *reset_fields,
++			       gboolean  exclude_reset_fields)
++{
++	return EV_LINK_ACTION (g_object_new (EV_TYPE_LINK_ACTION,
++					     "exclude-reset-fields", exclude_reset_fields,
++					     "reset-fields", reset_fields,
++					     "type", EV_LINK_ACTION_TYPE_RESET_FORM,
++					     NULL));
++}
++
+ /**
+  * ev_link_action_equal:
+  * @a: a #EvLinkAction
+diff --git a/libdocument/ev-link-action.h b/libdocument/ev-link-action.h
+index 3d6c5fd8..4dffeb74 100644
+--- a/libdocument/ev-link-action.h
++++ b/libdocument/ev-link-action.h
+@@ -47,36 +47,41 @@ typedef enum {
+ 	EV_LINK_ACTION_TYPE_EXTERNAL_URI,
+ 	EV_LINK_ACTION_TYPE_LAUNCH,
+ 	EV_LINK_ACTION_TYPE_NAMED,
+-	EV_LINK_ACTION_TYPE_LAYERS_STATE
++	EV_LINK_ACTION_TYPE_LAYERS_STATE,
++	EV_LINK_ACTION_TYPE_RESET_FORM
+ 	/* We'll probably fill this in more as we support the other types of
+ 	 * actions */
+ } EvLinkActionType;
+ 
+-GType            ev_link_action_get_type         (void) G_GNUC_CONST;
++GType            ev_link_action_get_type                 (void) G_GNUC_CONST;
+ 
+-EvLinkActionType ev_link_action_get_action_type  (EvLinkAction *self);
+-EvLinkDest      *ev_link_action_get_dest         (EvLinkAction *self);
+-const gchar     *ev_link_action_get_uri          (EvLinkAction *self);
+-const gchar     *ev_link_action_get_filename     (EvLinkAction *self);
+-const gchar     *ev_link_action_get_params       (EvLinkAction *self);
+-const gchar     *ev_link_action_get_name         (EvLinkAction *self);
+-GList           *ev_link_action_get_show_list    (EvLinkAction *self);
+-GList           *ev_link_action_get_hide_list    (EvLinkAction *self);
+-GList           *ev_link_action_get_toggle_list  (EvLinkAction *self);
++EvLinkActionType ev_link_action_get_action_type          (EvLinkAction *self);
++EvLinkDest      *ev_link_action_get_dest                 (EvLinkAction *self);
++const gchar     *ev_link_action_get_uri                  (EvLinkAction *self);
++const gchar     *ev_link_action_get_filename             (EvLinkAction *self);
++const gchar     *ev_link_action_get_params               (EvLinkAction *self);
++const gchar     *ev_link_action_get_name                 (EvLinkAction *self);
++GList           *ev_link_action_get_show_list            (EvLinkAction *self);
++GList           *ev_link_action_get_hide_list            (EvLinkAction *self);
++GList           *ev_link_action_get_toggle_list          (EvLinkAction *self);
++GList           *ev_link_action_get_reset_fields         (EvLinkAction *self);
++gboolean         ev_link_action_get_exclude_reset_fields (EvLinkAction *self);
+ 
+-EvLinkAction    *ev_link_action_new_dest         (EvLinkDest   *dest);
+-EvLinkAction    *ev_link_action_new_remote       (EvLinkDest   *dest,
+-						  const gchar  *filename);
+-EvLinkAction    *ev_link_action_new_external_uri (const gchar  *uri);
+-EvLinkAction    *ev_link_action_new_launch       (const gchar  *filename,
+-						  const gchar  *params);
+-EvLinkAction    *ev_link_action_new_named        (const gchar  *name);
+-EvLinkAction    *ev_link_action_new_layers_state (GList        *show_list,
+-						  GList        *hide_list,
+-						  GList        *toggle_list);
++EvLinkAction    *ev_link_action_new_dest                 (EvLinkDest   *dest);
++EvLinkAction    *ev_link_action_new_remote               (EvLinkDest   *dest,
++						          const gchar  *filename);
++EvLinkAction    *ev_link_action_new_external_uri         (const gchar  *uri);
++EvLinkAction    *ev_link_action_new_launch               (const gchar  *filename,
++						          const gchar  *params);
++EvLinkAction    *ev_link_action_new_named                (const gchar  *name);
++EvLinkAction    *ev_link_action_new_layers_state         (GList        *show_list,
++						          GList        *hide_list,
++						          GList        *toggle_list);
++EvLinkAction    *ev_link_action_new_reset_form           (GList        *fields,
++						          gboolean      exclude_fields);
+ 
+-gboolean         ev_link_action_equal            (EvLinkAction *a,
+-                                                  EvLinkAction *b);
++gboolean         ev_link_action_equal                    (EvLinkAction *a,
++                                                          EvLinkAction *b);
+ 
+ G_END_DECLS
+ 
+diff --git a/libview/ev-view.c b/libview/ev-view.c
+index c52ecaf3..e2ca6b5a 100644
+--- a/libview/ev-view.c
++++ b/libview/ev-view.c
+@@ -2095,6 +2095,7 @@ ev_view_handle_link (EvView *view, EvLink *link)
+ 	        case EV_LINK_ACTION_TYPE_EXTERNAL_URI:
+ 	        case EV_LINK_ACTION_TYPE_LAUNCH:
+ 	        case EV_LINK_ACTION_TYPE_NAMED:
++	        case EV_LINK_ACTION_TYPE_RESET_FORM:
+ 			g_signal_emit (view, signals[SIGNAL_EXTERNAL_LINK], 0, action);
+ 			break;
+ 	}
+@@ -2167,6 +2168,9 @@ tip_from_link (EvView *view, EvLink *link)
+ 	        case EV_LINK_ACTION_TYPE_NAMED:
+ 			msg = tip_from_action_named (action);
+ 			break;
++	        case EV_LINK_ACTION_TYPE_RESET_FORM:
++			msg = g_strdup_printf (_("Reset form"));
++			break;
+ 	        default:
+ 			if (title)
+ 				msg = g_strdup (title);
+diff --git a/shell/ev-window.c b/shell/ev-window.c
+index 1f3ea24d..81a6ede1 100644
+--- a/shell/ev-window.c
++++ b/shell/ev-window.c
+@@ -6867,6 +6867,18 @@ do_action_named (EvWindow *window, EvLinkAction *action)
+ 	}
+ }
+ 
++static void
++reset_form (EvWindow *window, EvLinkAction *action)
++{
++	EvWindowPrivate *priv = window->priv;
++	EvDocument      *document = priv->document;
++
++	if (EV_IS_DOCUMENT_FORMS (document)) {
++		ev_document_forms_reset_form (EV_DOCUMENT_FORMS (document), action);
++		ev_view_reload (EV_VIEW (priv->view));
++	}
++}
++
+ static void
+ view_external_link_cb (EvWindow *window, EvLinkAction *action)
+ {
+@@ -6893,6 +6905,9 @@ view_external_link_cb (EvWindow *window, EvLinkAction *action)
+ 	        case EV_LINK_ACTION_TYPE_NAMED:
+ 			do_action_named (window, action);
+ 			break;
++	        case EV_LINK_ACTION_TYPE_RESET_FORM:
++			reset_form (window, action);
++			break;
+ 	        default:
+ 			g_assert_not_reached ();
+ 	}
+-- 
+2.28.0
+

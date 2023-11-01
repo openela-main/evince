@@ -1,0 +1,31 @@
+From 9756fdca2efe71738d02792e839862cb5f0a0244 Mon Sep 17 00:00:00 2001
+From: Marek Kasik <mkasik@redhat.com>
+Date: Tue, 16 Feb 2021 17:15:20 +0100
+Subject: [PATCH] window: Use tmp dir as containing folder for non-native file
+
+Show the temporary directory containing the downloaded document
+as containing folder for documents from remote URIs.
+
+It fails currently since it can not open remote URIs.
+---
+ shell/ev-window.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/shell/ev-window.c b/shell/ev-window.c
+index ba282e18..a1bc55f0 100644
+--- a/shell/ev-window.c
++++ b/shell/ev-window.c
+@@ -3290,6 +3290,10 @@ ev_window_cmd_open_containing_folder (GSimpleAction *action,
+ 	}
+ 
+ 	file = g_file_new_for_uri (window->priv->uri);
++	if (!g_file_is_native (file)) {
++		g_object_unref (file);
++		file = g_file_new_for_uri (ev_document_get_uri (window->priv->document));
++	}
+ 	list.next = list.prev = NULL;
+ 	list.data = file;
+ 
+-- 
+2.30.2
+

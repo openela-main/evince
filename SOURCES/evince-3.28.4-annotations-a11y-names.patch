@@ -1,0 +1,1429 @@
+From bbdf11482efb932bcf8a55ec11b0cf503527638f Mon Sep 17 00:00:00 2001
+From: Marek Kasik <mkasik@redhat.com>
+Date: Mon, 26 Aug 2019 16:23:41 +0200
+Subject: shell: Set a11y names for annotation buttons
+
+Buttons for annotations were missing a11y names
+which made it difficult to navigate using a11y
+methods.
+
+diff --git a/shell/ev-annotations-toolbar.c b/shell/ev-annotations-toolbar.c
+index 7231d968..0efc6a35 100644
+--- a/shell/ev-annotations-toolbar.c
++++ b/shell/ev-annotations-toolbar.c
+@@ -90,13 +90,20 @@ ev_annotations_toolbar_toggle_button_if_
+ 
+ static GtkWidget *
+ ev_annotations_toolbar_create_toggle_button (EvAnnotationsToolbar *toolbar,
++                                             const gchar          *label,
+                                              const gchar          *icon_name,
+                                              const gchar          *tooltip)
+ {
+         GtkWidget *button = GTK_WIDGET (gtk_toggle_tool_button_new ());
+ 
+         gtk_widget_set_tooltip_text (button, tooltip);
+-        gtk_tool_button_set_icon_name (GTK_TOOL_BUTTON (button), icon_name);
++
++        if (label)
++                atk_object_set_name (gtk_widget_get_accessible (button), label);
++
++        if (icon_name)
++                gtk_tool_button_set_icon_name (GTK_TOOL_BUTTON (button), icon_name);
++
+         /* For some reason adding text-button class to the GtkToogleButton makes the button smaller */
+         gtk_style_context_add_class (gtk_widget_get_style_context (gtk_bin_get_child (GTK_BIN (button))), "text-button");
+         g_signal_connect (button, "toggled",
+@@ -115,13 +124,16 @@ ev_annotations_toolbar_init (EvAnnotatio
+                                      GTK_STYLE_CLASS_INLINE_TOOLBAR);
+ 
+         toolbar->text_button = ev_annotations_toolbar_create_toggle_button (toolbar,
++                               /* Translators: an annotation that looks like a "sticky note" */
++                                                                            _("Note text"),
+                                                                             "document-new-symbolic",
+                                                                             _("Add text annotation"));
+         gtk_container_add (GTK_CONTAINER(toolbar), toolbar->text_button);
+         gtk_widget_show (toolbar->text_button);
+ 
+         /* FIXME: use a better icon than select-all */
+         toolbar->highlight_button = ev_annotations_toolbar_create_toggle_button (toolbar,
++                                                                                 _("Highlight text"),
+                                                                                  "edit-select-all-symbolic",
+                                                                                  _("Add highlight annotation"));
+         gtk_container_add (GTK_CONTAINER (toolbar), toolbar->highlight_button);
+diff --git a/shell/ev-toolbar.c b/shell/ev-toolbar.c
+index c4f209f5..44a293dc 100644
+--- a/shell/ev-toolbar.c
++++ b/shell/ev-toolbar.c
+@@ -224,6 +224,7 @@ ev_toolbar_constructed (GObject *object)
+         /* FIXME: Use a better icon for edit than text editor */
+         button = ev_toolbar_create_toggle_button (ev_toolbar, "win.toggle-edit-annots", "accessories-text-editor-symbolic",
+                                                   _("Annotate the document"));
++        atk_object_set_name (gtk_widget_get_accessible (button), _("Annotate document"));
+         ev_toolbar->priv->annots_button = button;
+         gtk_widget_set_margin_end (button, 6);
+         gtk_header_bar_pack_start (GTK_HEADER_BAR (ev_toolbar), button);
+--- evince-3.28.4/po/ar.po
++++ evince-3.28.4/po/ar.po
+@@ -904,10 +904,19 @@ msgstr "مفتوحة"
+ msgid "Close"
+ msgstr "مغلقة"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:131
++msgid "Note text"
++msgstr "نص الملاحظة"
++
++#: ../shell/ev-annotations-toolbar.c:133
+ msgid "Add text annotation"
+ msgstr "أضف تعليقا نصيا"
+ 
++#: ../shell/ev-annotations-toolbar.c:138
++msgid "Highlight text"
++msgstr "نص التظليل"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "أضف تعليق إبراز"
+--- evince-3.28.4/po/be.po
++++ evince-3.28.4/po/be.po
+@@ -911,10 +911,19 @@ msgstr "Адкрыць"
+ msgid "Close"
+ msgstr "Закрыць"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:131
++msgid "Note text"
++msgstr "Тэкст нататкі"
++
++#: ../shell/ev-annotations-toolbar.c:133
+ msgid "Add text annotation"
+ msgstr "Дадаць тэкставыя анатацыі"
+ 
++#: ../shell/ev-annotations-toolbar.c:138
++msgid "Highlight text"
++msgstr "Падсвяціць тэкст"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Дадаць анатацыі выдзялення"
+--- evince-3.28.4/po/ca.po
++++ evince-3.28.4/po/ca.po
+@@ -915,10 +915,19 @@ msgstr "Obre"
+ msgid "Close"
+ msgstr "Tanca"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Propera nota"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Afegeix una anotació de text"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Ressalta el text"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Afegeix una anotació realçada"
+@@ -1115,6 +1124,10 @@ msgstr "Selecciona la pàgina"
+ msgid "Annotate the document"
+ msgstr "Anota el document"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Anota el document"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Opcions de fitxer"
+--- evince-3.28.4/po/cs.po
++++ evince-3.28.4/po/cs.po
+@@ -926,10 +926,19 @@ msgstr "Otevřené"
+ msgid "Close"
+ msgstr "Zavřené"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Poznámka"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Přidat textovou poznámku"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Zvýraznit"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Přidat zvýrazněnou poznámku"
+@@ -1133,6 +1142,10 @@ msgstr "Zvolit stránku"
+ msgid "Annotate the document"
+ msgstr "Přidat poznámky k dokumentu"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Přidat poznámky k dokumentu"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Volby souborů"
+--- evince-3.28.4/po/da.po
++++ evince-3.28.4/po/da.po
+@@ -953,10 +953,19 @@ msgstr "Åbent"
+ msgid "Close"
+ msgstr "Lukket"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Notetekst"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Tilføj tekstannotation"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Fremhæv tekst"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Tilføj fremhævet annotation"
+@@ -1159,6 +1168,10 @@ msgstr "Vælg side"
+ msgid "Annotate the document"
+ msgstr "Annotér dokumentet"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Annotér dokument"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Filindstillinger"
+--- evince-3.28.4/po/de.po
++++ evince-3.28.4/po/de.po
+@@ -941,10 +941,19 @@ msgstr "Öffnen"
+ msgid "Close"
+ msgstr "Schließen"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Notiztext"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Textanmerkung hinzufügen"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Texthervorhebung"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Hervorhebungsanmerkung hinzufügen"
+@@ -1152,6 +1161,10 @@ msgstr "Seite auswählen"
+ msgid "Annotate the document"
+ msgstr "Das Dokument mit Anmerkungen versehen"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Dokument mit Anmerkungen versehen"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Dateioptionen"
+--- evince-3.28.4/po/el.po
++++ evince-3.28.4/po/el.po
+@@ -932,10 +932,19 @@ msgstr "Άνοιγμα"
+ msgid "Close"
+ msgstr "Κλείσιμο"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:131
++msgid "Note text"
++msgstr "Σημείωση κειμένου"
++
++#: ../shell/ev-annotations-toolbar.c:133
+ msgid "Add text annotation"
+ msgstr "Προσθήκη σχολίου κειμένου"
+ 
++#: ../shell/ev-annotations-toolbar.c:138
++msgid "Highlight text"
++msgstr "Επισήμανση κειμένου"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Προσθήκη σχολίου επισήμανσης"
+--- evince-3.28.4/po/en_GB.po
++++ evince-3.28.4/po/en_GB.po
+@@ -932,10 +932,19 @@ msgstr "Open"
+ msgid "Close"
+ msgstr "Close"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Note text"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Add text annotation"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Highlight text"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Add highlight annotation"
+@@ -1170,6 +1179,11 @@ msgstr "Select page"
+ msgid "Annotate the document"
+ msgstr "Annotate the document"
+ 
++#: ../shell/ev-toolbar.c:227
++#| msgid "Annotate the document"
++msgid "Annotate document"
++msgstr "Annotate document"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Find options"
+--- evince-3.28.4/po/eo.po
++++ evince-3.28.4/po/eo.po
+@@ -1093,10 +1093,19 @@ msgstr "Notoj"
+ msgid "Text"
+ msgstr "Teksto"
+ 
+-#: ../shell/ev-sidebar-annotations.c:212
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Nota teksto"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Aldoni tekstnoton"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Emfazi tekston"
++
+ #: ../shell/ev-sidebar-annotations.c:223 ../shell/ev-sidebar-bookmarks.c:458
+ msgid "Add"
+ msgstr "Aldoni"
+@@ -1158,6 +1167,10 @@ msgstr "Malfermi ekzistan dokumenton"
+ msgid "Find a word or phrase in the document"
+ msgstr "Serĉi vorton aŭ frazon en la dokumento"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Noti dokumenton"
++
+ #: ../shell/ev-toolbar.c:232 ../shell/ev-toolbar.c:233
+ msgid "File options"
+ msgstr "Dosieraj opcioj"
+--- evince-3.28.4/po/es.po
++++ evince-3.28.4/po/es.po
+@@ -925,10 +925,19 @@ msgstr "Abierta"
+ msgid "Close"
+ msgstr "Cerrada"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Nota de texto"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Añadir anotación de texto"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Resaltar texto"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Añadir anotación resaltada"
+@@ -1131,6 +1140,10 @@ msgstr "Seleccionar página"
+ msgid "Annotate the document"
+ msgstr "Anotar el documento"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Anotar el documento"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Opciones del archivo"
+--- evince-3.28.4/po/eu.po
++++ evince-3.28.4/po/eu.po
+@@ -918,10 +918,19 @@ msgstr "Ireki"
+ msgid "Close"
+ msgstr "Itxi"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Ohar-testua"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Gehitu testuaren oharpena"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Nabarmendu testua"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Gehitu ohar nabarmendua"
+@@ -1151,6 +1160,10 @@ msgstr "Hautatu orrialdea"
+ msgid "Annotate the document"
+ msgstr "Jarri oharra dokumentuan"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Jarri oharra dokumentuetan"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Fitxategiaren aukerak"
+--- evince-3.28.4/po/fa.po
++++ evince-3.28.4/po/fa.po
+@@ -908,10 +908,19 @@ msgstr "باز کردن"
+ msgid "Close"
+ msgstr "بستن"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "متن یاداشت"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "افزودن حاشیه‌نویسی متنی"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "متن نشانه‌گذاری"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "افزودن حاشیه‌نویسی پررنگ"
+@@ -1139,6 +1148,10 @@ msgstr "انتخاب صفحه"
+ msgid "Annotate the document"
+ msgstr "حاشیه‌نویسی سند"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "حاشیه‌نویسی سند"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "گزینه‌های پرونده"
+--- evince-3.28.4/po/fi.po
++++ evince-3.28.4/po/fi.po
+@@ -924,10 +924,19 @@ msgstr "Avoin"
+ msgid "Close"
+ msgstr "Suljettu"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Huomautusteksti"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Lisää tekstihuomautus"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Korosta teksti"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Lisää korostettu huomautus"
+@@ -1132,6 +1141,10 @@ msgstr "Valitse sivu"
+ msgid "Annotate the document"
+ msgstr "Lisää huomautuksia asiakirjaan"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Lisää huomautuksia asiakirjaan"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Tiedoston valinnat"
+--- evince-3.28.4/po/fr.po
++++ evince-3.28.4/po/fr.po
+@@ -934,10 +934,19 @@ msgstr "Ouvrir"
+ msgid "Close"
+ msgstr "Fermer"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Annotation"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Ajouter une annotation texte"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Surligner du texte"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Ajouter une annotation surbrillante"
+@@ -1144,6 +1153,10 @@ msgstr "Choisir une page"
+ msgid "Annotate the document"
+ msgstr "Annoter le document"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Annoter le document"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Options des fichiers"
+--- evince-3.28.4/po/fur.po
++++ evince-3.28.4/po/fur.po
+@@ -917,10 +917,19 @@ msgstr "Viert"
+ msgid "Close"
+ msgstr "Sierât"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Test de note"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Zonte une note testuâl"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Test evidenziât"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Zonte une note evidenziade"
+@@ -1116,6 +1125,10 @@ msgstr "Selezione pagjine"
+ msgid "Annotate the document"
+ msgstr "Cjape notis tal document"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Cjape notis tal document"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Opzions file"
+--- evince-3.28.4/po/gl.po
++++ evince-3.28.4/po/gl.po
+@@ -925,10 +925,19 @@ msgstr "Abrir"
+ msgid "Close"
+ msgstr "Pechar"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Texto da nota"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Engadir texto de anotación"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Realzar texto"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Engadir anotación de realzado"
+@@ -1139,6 +1148,10 @@ msgstr "Seleccionar páxina"
+ msgid "Annotate the document"
+ msgstr "Anotar o documento"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Anotar documento"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Opcións do ficheiro"
+--- evince-3.28.4/po/he.po
++++ evince-3.28.4/po/he.po
+@@ -926,10 +926,21 @@ msgstr "פתיחה"
+ msgid "Close"
+ msgstr "סגירה"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++#| msgid "Note"
++msgid "Note text"
++msgstr "הערות מלל"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "הוספת פרשנות טקסט"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++#| msgid "Highlight"
++msgid "Highlight text"
++msgstr "הדגשת מלל"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "הוספת פרשנות מודגשת"
+@@ -1162,6 +1173,11 @@ msgstr "בחירת עמוד"
+ msgid "Annotate the document"
+ msgstr "פירוש המסמך"
+ 
++#: ../shell/ev-toolbar.c:227
++#| msgid "Annotate the document"
++msgid "Annotate document"
++msgstr "פירוש המסמך"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "אפשרויות קובץ"
+--- evince-3.28.4/po/hr.po
++++ evince-3.28.4/po/hr.po
+@@ -912,10 +912,19 @@ msgstr "Otvori"
+ msgid "Close"
+ msgstr "Zatvori"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Tekst napomene"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Dodaj napomenu teksta"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Naglašeni tekst"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Dodaj istaknutu napomenu"
+@@ -1122,6 +1131,10 @@ msgstr "Odaberi stranicu"
+ msgid "Annotate the document"
+ msgstr "Zabilježi dokument"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Zabilježi dokument"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Mogućnosti datoteke"
+--- evince-3.28.4/po/hu.po
++++ evince-3.28.4/po/hu.po
+@@ -912,10 +912,19 @@ msgstr "Nyitott"
+ msgid "Close"
+ msgstr "Zárt"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Szöveg jegyzetelése"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Szöveges jegyzet hozzáadása"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Szöveg kiemelése"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Kiemelés jegyzet hozzáadása"
+@@ -1112,6 +1121,11 @@ msgstr "Oldal kiválasztása"
+ msgid "Annotate the document"
+ msgstr "A dokumentum jegyzetelése"
+ 
++#: ../shell/ev-toolbar.c:227
++#| msgid "Annotate the document"
++msgid "Annotate document"
++msgstr "Dokumentum jegyzetelése"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Fájlbeállítások"
+--- evince-3.28.4/po/id.po
++++ evince-3.28.4/po/id.po
+@@ -917,10 +917,19 @@ msgstr "Buka"
+ msgid "Close"
+ msgstr "Tutup"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Catatan teks"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Menambahkan teks anotasi"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Sorot teks"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Tambahkan anotasi penyorotan"
+@@ -1118,6 +1127,10 @@ msgstr "Pilih halaman"
+ msgid "Annotate the document"
+ msgstr "Anotasikan dokumen"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Anotasikan dokumen"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Opsi berkas"
+--- evince-3.28.4/po/is.po
++++ evince-3.28.4/po/is.po
+@@ -910,10 +910,21 @@ msgstr "Opna"
+ msgid "Close"
+ msgstr "Loka"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:131
++#| msgid "Note"
++msgid "Note text"
++msgstr "Texti minnispunkts"
++
++#: ../shell/ev-annotations-toolbar.c:133
+ msgid "Add text annotation"
+ msgstr "Bæta við glósu"
+ 
++#: ../shell/ev-annotations-toolbar.c:138
++#| msgid "Highlight"
++msgid "Highlight text"
++msgstr "Áherslulita texta"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Bæta við áherslulitaðri glósu"
+--- evince-3.28.4/po/it.po
++++ evince-3.28.4/po/it.po
+@@ -930,10 +930,19 @@ msgstr "Apri"
+ msgid "Close"
+ msgstr "Chiudi"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Annotazione"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Aggiunge un'annotazione testuale"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Testo evidenziato"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Aggiunge un'annotazione evidenziata"
+@@ -1138,6 +1147,11 @@ msgstr "Seleziona pagina"
+ msgid "Annotate the document"
+ msgstr "Annota il documento"
+ 
++#: ../shell/ev-toolbar.c:227
++#| msgid "Annotate the document"
++msgid "Annotate document"
++msgstr "Annota documento"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Opzioni file"
+--- evince-3.28.4/po/ja.po
++++ evince-3.28.4/po/ja.po
+@@ -945,10 +945,19 @@ msgstr "開く"
+ msgid "Close"
+ msgstr "閉じる"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "テキストをメモ"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "テキスト注釈を追加します"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "テキストをハイライト"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "ハイライト注釈を追加します"
+@@ -1182,6 +1191,10 @@ msgstr "直接ページを指定しま�
+ msgid "Annotate the document"
+ msgstr "ドキュメントに注釈を付けます"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "ドキュメントに注釈を付ける"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "ファイルオプション"
+--- evince-3.28.4/po/kk.po
++++ evince-3.28.4/po/kk.po
+@@ -912,10 +912,19 @@ msgstr "Ашу"
+ msgid "Close"
+ msgstr "Жабу"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:131
++msgid "Note text"
++msgstr "Мәлімдеме мәтіні"
++
++#: ../shell/ev-annotations-toolbar.c:133
+ msgid "Add text annotation"
+ msgstr "Мәтіндік пікірді қосу"
+ 
++#: ../shell/ev-annotations-toolbar.c:138
++msgid "Highlight text"
++msgstr "Мәтінді түспен ерекшелеу"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Түспен ерекшелеудің аңдатпасын қосу"
+--- evince-3.28.4/po/ko.po
++++ evince-3.28.4/po/ko.po
+@@ -914,10 +914,19 @@ msgstr "열기"
+ msgid "Close"
+ msgstr "닫기"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "메모 텍스트"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "텍스트 추가 정보 추가"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "강조 텍스트"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "강조 추가 정보 추가"
+@@ -1113,6 +1122,11 @@ msgstr "페이지 선택"
+ msgid "Annotate the document"
+ msgstr "문서에 추가 정보를 넣습니다"
+ 
++# a11y 정보
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "문서에 주석 달기"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "파일 옵션"
+--- evince-3.28.4/po/lt.po
++++ evince-3.28.4/po/lt.po
+@@ -921,10 +921,19 @@ msgstr "Atverti"
+ msgid "Close"
+ msgstr "Užverti"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Ratelio tekstas"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Pridėti teksto anotaciją"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Paryškinti tekstą"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Pridėti paryškinimo anotaciją"
+@@ -1122,6 +1131,11 @@ msgstr "Pasirinkite puslapį"
+ msgid "Annotate the document"
+ msgstr "Anotuoti dokumentą"
+ 
++#: ../shell/ev-toolbar.c:227
++#| msgid "Annotate the document"
++msgid "Annotate document"
++msgstr "Anotuoti dokumentą"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Failo parametrai"
+--- evince-3.28.4/po/lv.po
++++ evince-3.28.4/po/lv.po
+@@ -914,10 +914,19 @@ msgstr "Atvērt"
+ msgid "Close"
+ msgstr "Aizvērt"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:131
++msgid "Note text"
++msgstr "Piezīmes teksts"
++
++#: ../shell/ev-annotations-toolbar.c:133
+ msgid "Add text annotation"
+ msgstr "Pievienot teksta anotāciju"
+ 
++#: ../shell/ev-annotations-toolbar.c:138
++msgid "Highlight text"
++msgstr "Izcelt tekstu"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Pievienot izcēluma anotāciju"
+--- evince-3.28.4/po/ms.po
++++ evince-3.28.4/po/ms.po
+@@ -991,10 +991,20 @@ msgstr "Anotasi"
+ msgid "Text"
+ msgstr "Teks"
+ 
+-#: ../shell/ev-sidebar-annotations.c:210
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++#| msgid "Note"
++msgid "Note text"
++msgstr "Teks nota"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Tambah anotasi teks"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Teks sorot"
++
+ #: ../shell/ev-sidebar-annotations.c:221
+ msgid "Add"
+ msgstr "Tambah"
+@@ -1322,6 +1332,11 @@ msgstr "_Buka..."
+ msgid "Open an existing document"
+ msgstr "Membuka dokumen sedia ada"
+ 
++#: ../shell/ev-toolbar.c:227
++#| msgid "Reload the document"
++msgid "Annotate document"
++msgstr "Catatkan dokumen"
++
+ #: ../shell/ev-window.c:5695
+ msgid "Op_en a Copy"
+ msgstr "Bu_ka Satu Salinan"
+--- evince-3.28.4/po/nl.po
++++ evince-3.28.4/po/nl.po
+@@ -962,10 +962,20 @@ msgstr "Openen"
+ msgid "Close"
+ msgstr "Sluiten"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++# Notitietekst of tekst noteren? -Justin 28/07/18
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Notitietekst"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Tekstannotatie toevoegen"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Tekst markeren"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Markeerannotatie toevoegen"
+@@ -1171,6 +1181,10 @@ msgstr "Pagina selecteren"
+ msgid "Annotate the document"
+ msgstr "Het document annoteren"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Document annoteren"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Bestandsopties"
+--- evince-3.28.4/po/pa.po
++++ evince-3.28.4/po/pa.po
+@@ -922,10 +922,21 @@ msgstr "ਖੋਲ੍ਹੋ"
+ msgid "Close"
+ msgstr "ਬੰਦ ਕਰੋ"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:131
++#| msgid "Note"
++msgid "Note text"
++msgstr "ਲਿਖਤੀ ਨੋਟ"
++
++#: ../shell/ev-annotations-toolbar.c:133
+ msgid "Add text annotation"
+ msgstr "ਲਿਖਤ ਵਿਆਖਿਆ ਸ਼ਾਮਿਲ"
+ 
++#: ../shell/ev-annotations-toolbar.c:138
++#| msgid "Highlight"
++msgid "Highlight text"
++msgstr "ਲਿਖਤ ਉਘਾੜੋ"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "ਉਭਾਰੀ ਵਿਆਖਿਆ ਜੋੜੋ"
+--- evince-3.28.4/po/pl.po
++++ evince-3.28.4/po/pl.po
+@@ -919,10 +919,19 @@ msgstr "Otwarte"
+ msgid "Close"
+ msgstr "Zamknięte"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Dodaj notatkę"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Dodaje przypis tekstowy"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Zakreśl tekst"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Dodaje zakreślenie"
+@@ -1125,6 +1134,10 @@ msgstr "Wybiera stronę"
+ msgid "Annotate the document"
+ msgstr "Dodaje przypisy do dokumentu"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Dodaj przypisy do dokumentu"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Opcje plików"
+--- evince-3.28.4/po/pt_BR.po
++++ evince-3.28.4/po/pt_BR.po
+@@ -941,10 +941,19 @@ msgstr "Aberto"
+ msgid "Close"
+ msgstr "Fechado"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Nota de texto"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Adiciona anotação de texto"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Texto destacado"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Adiciona anotação com destaque"
+@@ -1166,6 +1175,10 @@ msgstr "Seleciona página"
+ msgid "Annotate the document"
+ msgstr "Anota o documento"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Anotar documento"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Opções do arquivo"
+--- evince-3.28.4/po/ro.po
++++ evince-3.28.4/po/ro.po
+@@ -932,10 +932,20 @@ msgstr "Deschide"
+ msgid "Close"
+ msgstr "Închide"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++# LG: descriere a unei iconițe atașabile unei notițe
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:131
++msgid "Note text"
++msgstr "Textul notei"
++
++#: ../shell/ev-annotations-toolbar.c:133
+ msgid "Add text annotation"
+ msgstr "Adăugă adnotare text"
+ 
++#: ../shell/ev-annotations-toolbar.c:138
++msgid "Highlight text"
++msgstr "Evidențiază textul"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Adăugă adnotare evidențiată"
+--- evince-3.28.4/po/ru.po
++++ evince-3.28.4/po/ru.po
+@@ -918,10 +918,19 @@ msgstr "Открыть"
+ msgid "Close"
+ msgstr "Закрыть"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:131
++msgid "Note text"
++msgstr "Сделать заметку тексту"
++
++#: ../shell/ev-annotations-toolbar.c:133
+ msgid "Add text annotation"
+ msgstr "Добавить текстовое примечание"
+ 
++#: ../shell/ev-annotations-toolbar.c:138
++msgid "Highlight text"
++msgstr "Подсветить текст"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Добавить выделенное примечание"
+--- evince-3.28.4/po/sk.po
++++ evince-3.28.4/po/sk.po
+@@ -1028,11 +1028,21 @@ msgstr "Otvorené"
+ msgid "Close"
+ msgstr "Zatvorené"
+ 
++# cobmbobox item
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Text poznámky"
++
+ # tooltip
+-#: ../shell/ev-annotations-toolbar.c:120
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Pridá poznámku do textu"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Zvýrazniť text"
++
+ # tooltip
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+@@ -1261,6 +1271,11 @@ msgid "Annotate the document"
+ msgstr "Pridá poznámku k dokumentu"
+ 
+ # tooltip
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Pridá poznámku k dokumentu"
++
++# tooltip
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Voľby súboru"
+--- evince-3.28.4/po/sl.po
++++ evince-3.28.4/po/sl.po
+@@ -916,10 +916,19 @@ msgstr "Odpri"
+ msgid "Close"
+ msgstr "Zapri"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Besedilo opombe"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Dodaj pripombo k besedilu ..."
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Poudari besedilo"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Dodaj opombo s poudarkom"
+@@ -1116,6 +1125,12 @@ msgstr "Izberi stran"
+ msgid "Annotate the document"
+ msgstr "Opomba s poudarkom"
+ 
++#: ../shell/ev-toolbar.c:228
++#, fuzzy
++#| msgid "Annotate the document"
++msgid "Annotate document"
++msgstr "Opomba s poudarkom"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Možnosti datotek"
+--- evince-3.28.4/po/sr.po
++++ evince-3.28.4/po/sr.po
+@@ -919,10 +919,19 @@ msgstr "Отворен"
+ msgid "Close"
+ msgstr "Затворен"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Текст белешке"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Додај забелешку"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Истакнути текст"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Додај забелешку у боји"
+@@ -1126,6 +1135,10 @@ msgstr "Изабери страницу"
+ msgid "Annotate the document"
+ msgstr "Додај забелешке у документ"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Додај забелешке у документ"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Опције датотеке"
+--- evince-3.28.4/po/sv.po
++++ evince-3.28.4/po/sv.po
+@@ -925,10 +925,19 @@ msgstr "Öppna"
+ msgid "Close"
+ msgstr "Stäng"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Gör en notering på text"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Lägg till textkommentar"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Färgmarkera text"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Lägg till färgmarkeringskommentar"
+@@ -1127,6 +1136,10 @@ msgstr "Välj sida"
+ msgid "Annotate the document"
+ msgstr "Lägg till kommentarer till dokumentet"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Lägg till kommentarer till dokument"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Filalternativ"
+--- evince-3.28.4/po/tr.po
++++ evince-3.28.4/po/tr.po
+@@ -919,10 +919,19 @@ msgstr "Aç"
+ msgid "Close"
+ msgstr "Kapat"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "Açıklama metni"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Açıklama metni ekle"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "Metni vurgula"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Vurgu açıklaması ekle"
+@@ -1120,6 +1129,10 @@ msgstr "Sayfa seç"
+ msgid "Annotate the document"
+ msgstr "Belgeye açıklama ekle"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "Belgeye açıklama ekle"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Dosya seçenekleri"
+--- evince-3.28.4/po/uk.po
++++ evince-3.28.4/po/uk.po
+@@ -930,10 +930,21 @@ msgstr "Відкрити"
+ msgid "Close"
+ msgstr "Закрити"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++#| msgid "Note"
++msgid "Note text"
++msgstr "Текстова примітка"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "Додати текстову нотатку"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++#| msgid "Highlight"
++msgid "Highlight text"
++msgstr "Підсвітити текст"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Додати позначену нотатку"
+@@ -1163,6 +1174,11 @@ msgstr "Виберіть сторінк�
+ msgid "Annotate the document"
+ msgstr "Зробити примітку в документі"
+ 
++#: ../shell/ev-toolbar.c:227
++#| msgid "Annotate the document"
++msgid "Annotate document"
++msgstr "Анотувати документ"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "Параметри файлів"
+--- evince-3.28.4/po/vi.po
++++ evince-3.28.4/po/vi.po
+@@ -911,10 +911,19 @@ msgstr "Mở"
+ msgid "Close"
+ msgstr "Đóng"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:131
++msgid "Note text"
++msgstr "Ghi chú bằng chữ"
++
++#: ../shell/ev-annotations-toolbar.c:133
+ msgid "Add text annotation"
+ msgstr "Thêm chú thích bằng chữ"
+ 
++#: ../shell/ev-annotations-toolbar.c:138
++msgid "Highlight text"
++msgstr "Tô sáng chữ"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "Thêm chú thích tô sáng"
+--- evince-3.28.4/po/zh_CN.po
++++ evince-3.28.4/po/zh_CN.po
+@@ -913,10 +913,19 @@ msgstr "打开"
+ msgid "Close"
+ msgstr "关闭"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:131
++msgid "Note text"
++msgstr "笔记"
++
++#: ../shell/ev-annotations-toolbar.c:133
+ msgid "Add text annotation"
+ msgstr "添加文本注释"
+ 
++#: ../shell/ev-annotations-toolbar.c:138
++msgid "Highlight text"
++msgstr "高亮文本"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "添加高亮注释"
+--- evince-3.28.4/po/zh_TW.po
++++ evince-3.28.4/po/zh_TW.po
+@@ -903,10 +903,19 @@ msgstr "開啟"
+ msgid "Close"
+ msgstr "關閉"
+ 
+-#: ../shell/ev-annotations-toolbar.c:120
++#. Translators: an annotation that looks like a "sticky note"
++#: ../shell/ev-annotations-toolbar.c:133
++msgid "Note text"
++msgstr "備註文字"
++
++#: ../shell/ev-annotations-toolbar.c:135
+ msgid "Add text annotation"
+ msgstr "加入文字註解"
+ 
++#: ../shell/ev-annotations-toolbar.c:140
++msgid "Highlight text"
++msgstr "標示文字"
++
+ #: ../shell/ev-annotations-toolbar.c:127
+ msgid "Add highlight annotation"
+ msgstr "加入突顯註解"
+@@ -1106,6 +1115,10 @@ msgstr "選擇頁面"
+ msgid "Annotate the document"
+ msgstr "文件加入註解"
+ 
++#: ../shell/ev-toolbar.c:227
++msgid "Annotate document"
++msgstr "加入文件註解"
++
+ #: ../shell/ev-toolbar.c:243 ../shell/ev-toolbar.c:244
+ msgid "File options"
+ msgstr "檔案選項"
