@@ -1,0 +1,55 @@
+From 7c6c930f7fa164700d089d646dc8300340ca4600 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Nelson=20Ben=C3=ADtez=20Le=C3=B3n?= <nbenitezl@gmail.com>
+Date: Mon, 6 Apr 2020 14:38:53 -0400
+Subject: [PATCH] EvFormField: allow text entries to handle clicks
+
+so the user can interact with the text entry for
+eg. placing text cursor in an arbitrary position
+
+Fixes #1364
+---
+ libview/ev-view.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/libview/ev-view.c b/libview/ev-view.c
+index f73f0ce9..1ebcb584 100644
+--- a/libview/ev-view.c
++++ b/libview/ev-view.c
+@@ -2497,6 +2497,14 @@ ev_view_form_field_text_focus_out (GtkWidget     *widget,
+ 	return FALSE;
+ }
+ 
++static gboolean
++ev_view_form_field_text_button_pressed (GtkWidget      *widget,
++					GdkEventButton *event,
++					gpointer        data)
++{
++	return GDK_EVENT_STOP;
++}
++
+ static GtkWidget *
+ ev_view_form_field_text_create_widget (EvView      *view,
+ 				       EvFormField *field)
+@@ -2536,6 +2544,9 @@ ev_view_form_field_text_create_widget (EvView      *view,
+ 			g_signal_connect_after (text, "activate",
+ 						G_CALLBACK (ev_view_form_field_destroy),
+ 						view);
++			g_signal_connect_after (text, "button-press-event",
++						G_CALLBACK (ev_view_form_field_text_button_pressed),
++						NULL);
+ 			break;
+ 	        case EV_FORM_FIELD_TEXT_MULTILINE: {
+ 			GtkTextBuffer *buffer;
+@@ -2554,6 +2565,9 @@ ev_view_form_field_text_create_widget (EvView      *view,
+ 			g_signal_connect (buffer, "changed",
+ 					  G_CALLBACK (ev_view_form_field_text_changed),
+ 					  field);
++			g_signal_connect_after (text, "button-press-event",
++						G_CALLBACK (ev_view_form_field_text_button_pressed),
++						NULL);
+ 		}
+ 			break;
+ 	}			
+-- 
+2.31.1
+

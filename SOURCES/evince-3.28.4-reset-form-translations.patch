@@ -1,0 +1,546 @@
+--- evince-3.28.4/po/bg.po
++++ evince-3.28.4/po/bg.po
+@@ -666,6 +666,10 @@ msgstr "Отиване при файла
+ msgid "Launch %s"
+ msgstr "Стартиране на %s"
+ 
++#: libview/ev-view.c:2174
++msgid "Reset form"
++msgstr "Изчистване на формуляра"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Отиване на страница:"
+--- evince-3.28.4/po/ca.po
++++ evince-3.28.4/po/ca.po
+@@ -667,6 +667,10 @@ msgstr "Vés al fitxer «%s»"
+ msgid "Launch %s"
+ msgstr "Engega %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Reinicialitza el formulari"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Salta a la pàgina:"
+--- evince-3.28.4/po/cs.po
++++ evince-3.28.4/po/cs.po
+@@ -678,6 +678,10 @@ msgstr "Přejít na soubor “%s”"
+ msgid "Launch %s"
+ msgstr "Spustit %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Čistý formulář"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Přejít na stránku:"
+--- evince-3.28.4/po/da.po
++++ evince-3.28.4/po/da.po
+@@ -682,6 +682,10 @@ msgstr "Gå til filen “%s”"
+ msgid "Launch %s"
+ msgstr "Start %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Nulstil formular"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Gå til side:"
+--- evince-3.28.4/po/de.po
++++ evince-3.28.4/po/de.po
+@@ -691,6 +691,10 @@ msgstr "Zu Datei »%s« gehen"
+ msgid "Launch %s"
+ msgstr "%s starten"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Formular zurücksetzen"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Zu folgender Seite gehen:"
+--- evince-3.28.4/po/en_GB.po
++++ evince-3.28.4/po/en_GB.po
+@@ -684,6 +684,10 @@ msgstr "Go to file “%s”"
+ msgid "Launch %s"
+ msgstr "Launch %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Reset form"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Jump to page:"
+--- evince-3.28.4/po/el.po
++++ evince-3.28.4/po/el.po
+@@ -683,6 +683,10 @@ msgstr "Μετάβαση στο αρχε
+ msgid "Launch %s"
+ msgstr "Εκκίνηση %s"
+ 
++#: libview/ev-view.c:2174
++msgid "Reset form"
++msgstr "Επαναφορά φόρμας"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Μετάβαση στη σελίδα:"
+--- evince-3.28.4/po/es.po
++++ evince-3.28.4/po/es.po
+@@ -677,6 +677,10 @@ msgstr "Ir al archivo «%s»"
+ msgid "Launch %s"
+ msgstr "Lanzar %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Reiniciar formulario"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Saltar a la página:"
+--- evince-3.28.4/po/eu.po
++++ evince-3.28.4/po/eu.po
+@@ -665,6 +665,10 @@ msgstr "Joan hona: %s ('%s' fitxategian)
+ msgid "Go to file “%s”"
+ msgstr "Joan '%s' fitxategira"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Leheneratu inprimakia"
++
+ #: ../libview/ev-view.c:2088
+ #, c-format
+ msgid "Launch %s"
+--- evince-3.28.4/po/fa.po
++++ evince-3.28.4/po/fa.po
+@@ -660,6 +660,10 @@ msgstr "رفتن به پرونده‌ی
+ msgid "Launch %s"
+ msgstr "راه‌اندازی %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "بازنشانی فرم"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "پریدن به صفحه‌:"
+--- evince-3.28.4/po/fi.po
++++ evince-3.28.4/po/fi.po
+@@ -676,6 +676,10 @@ msgstr "Siirry tiedostoon ”%s”"
+ msgid "Launch %s"
+ msgstr "Käynnistä %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Tyhjennä lomake"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Siirry sivulle:"
+--- evince-3.28.4/po/fr.po
++++ evince-3.28.4/po/fr.po
+@@ -686,6 +686,10 @@ msgstr "Aller à la page « %s »"
+ msgid "Launch %s"
+ msgstr "Lancer %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Réinitialiser le formulaire"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Aller à la page :"
+--- evince-3.28.4/po/fur.po
++++ evince-3.28.4/po/fur.po
+@@ -669,6 +669,10 @@ msgstr "Va al file \"%s\""
+ msgid "Launch %s"
+ msgstr "Fâs partî %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Ripristine modul"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Salte ae pagjine:"
+--- evince-3.28.4/po/gl.po
++++ evince-3.28.4/po/gl.po
+@@ -677,6 +677,10 @@ msgstr "Ir ao ficheiro «%s»"
+ msgid "Launch %s"
+ msgstr "Iniciar %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Restabelecer o formulario"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Saltar á páxina:"
+--- evince-3.28.4/po/he.po
++++ evince-3.28.4/po/he.po
+@@ -678,6 +678,10 @@ msgstr "מעבר לקובץ „%s“"
+ msgid "Launch %s"
+ msgstr "שיגור %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "איפוס טופס"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "קפיצה לעמוד:"
+--- evince-3.28.4/po/hu.po
++++ evince-3.28.4/po/hu.po
+@@ -664,6 +664,10 @@ msgstr "Ugrás a(z) %s fájlra"
+ msgid "Launch %s"
+ msgstr "%s indítása"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Űrlap visszaállítása"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Ugrás oldalra:"
+--- evince-3.28.4/po/hr.po
++++ evince-3.28.4/po/hr.po
+@@ -664,6 +664,10 @@ msgstr "Idi na datoteku \"%s\""
+ msgid "Launch %s"
+ msgstr "Pokreni %s"
+ 
++#: libview/ev-view.c:2174
++msgid "Reset form"
++msgstr "Poništi obrazac"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Idi na stranicu:"
+--- evince-3.28.4/po/id.po
++++ evince-3.28.4/po/id.po
+@@ -669,6 +669,10 @@ msgstr "Pergi ke berkas “%s”"
+ msgid "Launch %s"
+ msgstr "Luncurkan %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Reset formulir"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Lompat ke halaman:"
+--- evince-3.28.4/po/it.po
++++ evince-3.28.4/po/it.po
+@@ -678,6 +678,10 @@ msgstr "Va al file «%s»"
+ msgid "Launch %s"
+ msgstr "Lancia %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Azzera modulo"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Salta alla pagina:"
+--- evince-3.28.4/po/ja.po
++++ evince-3.28.4/po/ja.po
+@@ -689,6 +689,10 @@ msgstr "ファイル“%s”へ移動し
+ msgid "Launch %s"
+ msgstr "%s の起動"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "フォームをリセット"
++
+ #: ../libview/ev-view-presentation.c:735
+ msgid "Jump to page:"
+ msgstr "移動先のページ:"
+--- evince-3.28.4/po/kk.po
++++ evince-3.28.4/po/kk.po
+@@ -664,6 +664,10 @@ msgstr "\"%s\" файлына өту"
+ msgid "Launch %s"
+ msgstr "%s жөнелту"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Форманы тастау"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Параққа өту:"
+--- evince-3.28.4/po/ko.po
++++ evince-3.28.4/po/ko.po
+@@ -665,6 +665,10 @@ msgstr "“%s” 파일로 이동"
+ msgid "Launch %s"
+ msgstr "%s 실행"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "양식 다시 설정"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "페이지로 이동:"
+--- evince-3.28.4/po/lt.po
++++ evince-3.28.4/po/lt.po
+@@ -673,6 +673,10 @@ msgstr "Eiti į failą „%s“"
+ msgid "Launch %s"
+ msgstr "Paleisti %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Atstatyti formą"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Eiti į puslapį:"
+--- evince-3.28.4/po/nb.po
++++ evince-3.28.4/po/nb.po
+@@ -662,6 +662,10 @@ msgstr "Gå til fil «%s»"
+ msgid "Launch %s"
+ msgstr "Start %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Nullstill skjema"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Gå til side:"
+--- evince-3.28.4/po/ne.po
++++ evince-3.28.4/po/ne.po
+@@ -635,6 +635,10 @@ msgstr "“%s” फाइलमा ज�
+ msgid "Launch %s"
+ msgstr "%s सुरु गर्नुहोस्"
+ 
++#: libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "फारम पुनः मिलान"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "पृष्ठमा जानुहोस्:"
+--- evince-3.28.4/po/nl.po
++++ evince-3.28.4/po/nl.po
+@@ -700,6 +700,10 @@ msgstr "Ga naar bestand ‘%s’"
+ msgid "Launch %s"
+ msgstr "%s opstarten"
+ 
++#: libview/ev-view.c:2174
++msgid "Reset form"
++msgstr "Formulier opnieuw instellen"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Ga naar pagina:"
+--- evince-3.28.4/po/oc.po
++++ evince-3.28.4/po/oc.po
+@@ -695,6 +695,10 @@ msgstr "Anar a la pagina « %s »"
+ msgid "Launch %s"
+ msgstr "Aviar %s"
+ 
++#: libview/ev-view.c:2174
++msgid "Reset form"
++msgstr "Reïnicializar lo formulari"
++
+ #: ../libview/ev-view-presentation.c:735
+ msgid "Jump to page:"
+ msgstr "Anar a la pagina :"
+--- evince-3.28.4/po/pa.po
++++ evince-3.28.4/po/pa.po
+@@ -674,6 +674,10 @@ msgstr "ਫਾਇਲ “%s” ਉੱਤ�
+ msgid "Launch %s"
+ msgstr "%s ਚਲਾਓ"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "ਫਾਰਮ ਮੁੜ-ਸੈੱਟ ਕਰੋ"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "ਸਫ਼ੇ ਉੱਤੇ ਜਾਓ:"
+--- evince-3.28.4/po/pl.po
++++ evince-3.28.4/po/pl.po
+@@ -671,6 +671,10 @@ msgstr "Przejdź do pliku „%s”"
+ msgid "Launch %s"
+ msgstr "Uruchom „%s”"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Przywróć formularz"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Przejdź do strony:"
+--- evince-3.28.4/po/pt.po
++++ evince-3.28.4/po/pt.po
+@@ -694,6 +694,10 @@ msgstr "Ir para o ficheiro “%s”"
+ msgid "Launch %s"
+ msgstr "Iniciar %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Restabelecer a partir de"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Ir para a página:"
+--- evince-3.28.4/po/pt_BR.po
++++ evince-3.28.4/po/pt_BR.po
+@@ -687,6 +687,10 @@ msgstr "Vai para o arquivo “%s”"
+ msgid "Launch %s"
+ msgstr "Inicia %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Redefinir formulário"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Pular para a página:"
+--- evince-3.28.4/po/ro.po
++++ evince-3.28.4/po/ro.po
+@@ -674,6 +674,10 @@ msgstr "Navighează la fișierul „%s�
+ msgid "Launch %s"
+ msgstr "Pornește %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Restabilește formularul"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Sari la pagina:"
+--- evince-3.28.4/po/ru.po
++++ evince-3.28.4/po/ru.po
+@@ -670,6 +670,10 @@ msgstr "Перейти к файлу «%
+ msgid "Launch %s"
+ msgstr "Запустить %s"
+ 
++#: libview/ev-view.c:2173
++msgid "Reset form"
++msgstr "Очистить форму"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Перейти к странице:"
+--- evince-3.28.4/po/sk.po
++++ evince-3.28.4/po/sk.po
+@@ -753,6 +753,10 @@ msgstr "Prejde na súbor „%s“"
+ msgid "Launch %s"
+ msgstr "Spustí %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Vynuluje formulár"
++
+ # label
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+--- evince-3.28.4/po/sl.po
++++ evince-3.28.4/po/sl.po
+@@ -668,6 +668,10 @@ msgstr "Skoči na datoteko »%s«"
+ msgid "Launch %s"
+ msgstr "Zaženi %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Ponastavi obrazec"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Pojdi na stran:"
+--- evince-3.28.4/po/sr.po
++++ evince-3.28.4/po/sr.po
+@@ -671,6 +671,10 @@ msgstr "Иди на датотеку „
+ msgid "Launch %s"
+ msgstr "Покрени %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Поврати образац"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Скочи на страну:"
+--- evince-3.28.4/po/sv.po
++++ evince-3.28.4/po/sv.po
+@@ -676,6 +676,10 @@ msgstr "Gå till filen ”%s”"
+ msgid "Launch %s"
+ msgstr "Starta %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Återställ formulär"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Gå till sidan:"
+--- evince-3.28.4/po/tr.po
++++ evince-3.28.4/po/tr.po
+@@ -671,6 +671,10 @@ msgstr "“%s” dosyasına git"
+ msgid "Launch %s"
+ msgstr "%s başlat"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Formu sıfırla"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Sayfaya git:"
+--- evince-3.28.4/po/uk.po
++++ evince-3.28.4/po/uk.po
+@@ -682,6 +682,10 @@ msgstr "Перейти до файла �
+ msgid "Launch %s"
+ msgstr "Запустити %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Відновити початковий стан форми"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Перейти до сторінки:"
+--- evince-3.28.4/po/vi.po
++++ evince-3.28.4/po/vi.po
+@@ -663,6 +663,10 @@ msgstr "Tới tập tin “%s”"
+ msgid "Launch %s"
+ msgstr "Khởi chạy %s"
+ 
++#: libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "Đặt lại form"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "Nhảy đến trang:"
+--- evince-3.28.4/po/zh_CN.po
++++ evince-3.28.4/po/zh_CN.po
+@@ -665,6 +665,10 @@ msgstr "转到文件“%s”"
+ msgid "Launch %s"
+ msgstr "调用 %s"
+ 
++#: ../libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "重置表单"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "跳到页面："
+--- evince-3.28.4/po/zh_TW.po
++++ evince-3.28.4/po/zh_TW.po
+@@ -655,6 +655,10 @@ msgstr "前往「%s」檔案"
+ msgid "Launch %s"
+ msgstr "執行 %s"
+ 
++#: libview/ev-view.c:2172
++msgid "Reset form"
++msgstr "重設表單"
++
+ #: ../libview/ev-view-presentation.c:752
+ msgid "Jump to page:"
+ msgstr "前往頁面："

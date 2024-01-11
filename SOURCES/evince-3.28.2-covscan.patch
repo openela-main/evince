@@ -1,0 +1,465 @@
+--- evince-3.28.2/backend/comics/comics-document.c
++++ evince-3.28.2/backend/comics/comics-document.c
+@@ -453,23 +453,27 @@ comics_document_render_pixbuf (EvDocumen
+ 
+ 		name = ev_archive_get_entry_pathname (comics_document->archive);
+ 		if (g_strcmp0 (name, page_path) == 0) {
+-			size_t size = ev_archive_get_entry_size (comics_document->archive);
++			gint64 size = ev_archive_get_entry_size (comics_document->archive);
+ 			char *buf;
+ 			ssize_t read;
+ 
+-			buf = g_malloc (size);
+-			read = ev_archive_read_data (comics_document->archive, buf, size, &error);
+-			if (read <= 0) {
+-				if (read < 0) {
+-					g_warning ("Fatal error reading '%s' in archive: %s", name, error->message);
+-					g_error_free (error);
++			if (size < 0) {
++				g_warning ("Wrong size of entry '%s'.", name);
++			} else {
++				buf = g_malloc (size);
++				read = ev_archive_read_data (comics_document->archive, buf, size, &error);
++				if (read <= 0) {
++					if (read < 0) {
++						g_warning ("Fatal error reading '%s' in archive: %s", name, error->message);
++						g_error_free (error);
++					} else {
++						g_warning ("Read an empty file from the archive");
++					}
+ 				} else {
+-					g_warning ("Read an empty file from the archive");
++					gdk_pixbuf_loader_write (loader, (guchar *) buf, size, NULL);
+ 				}
+-			} else {
+-				gdk_pixbuf_loader_write (loader, (guchar *) buf, size, NULL);
++				g_free (buf);
+ 			}
+-			g_free (buf);
+ 			gdk_pixbuf_loader_close (loader, NULL);
+ 			break;
+ 		}
+--- evince-3.28.2/backend/pdf/ev-poppler.cc
++++ evince-3.28.2/backend/pdf/ev-poppler.cc
+@@ -859,6 +859,7 @@ pdf_document_get_info (EvDocument *docum
+ 			break;
+ 		case POPPLER_PAGE_LAYOUT_TWO_COLUMN_RIGHT:
+ 			info->layout = EV_DOCUMENT_LAYOUT_TWO_COLUMN_RIGHT;
++			break;
+ 		case POPPLER_PAGE_LAYOUT_TWO_PAGE_LEFT:
+ 			info->layout = EV_DOCUMENT_LAYOUT_TWO_PAGE_LEFT;
+ 			break;
+--- evince-3.28.2/cut-n-paste/libgd/gd-two-lines-renderer.c
++++ evince-3.28.2/cut-n-paste/libgd/gd-two-lines-renderer.c
+@@ -281,7 +281,7 @@ gd_two_lines_renderer_render (GtkCellRen
+   GtkStyleContext *context;
+   gint line_one_height;
+   GtkStateFlags state;
+-  GdkRectangle area, render_area = *cell_area;
++  GdkRectangle area, render_area;
+   gint xpad, ypad, x_offset_1, x_offset_2, y_offset;
+   PangoLayout *layout_one, *layout_two;
+   PangoRectangle layout_rect;
+--- evince-3.28.2/cut-n-paste/synctex/synctex_parser.c
++++ evince-3.28.2/cut-n-paste/synctex/synctex_parser.c
+@@ -2878,6 +2878,7 @@ int _synctex_open(const char * output, c
+ 				build_output[0] = '\0';
+ 			} else {
+ 				if (build_output != strcpy(build_output,output)) {
++					free(build_output);
+ 					return -4;
+ 				}
+ 				build_output[lpc-output]='\0';
+@@ -2886,15 +2887,18 @@ int _synctex_open(const char * output, c
+ 				/*	Append a path separator if necessary. */
+ 				if (!SYNCTEX_IS_PATH_SEPARATOR(build_output[strlen(build_directory)-1])) {
+ 					if (build_output != strcat(build_output,"/")) {
++						free(build_output);
+ 						return -2;
+ 					}
+ 				}
+ 				/*	Append the last path component of the output. */
+ 				if (build_output != strcat(build_output,lpc)) {
++					free(build_output);
+ 					return -3;
+ 				}
+ 				return __synctex_open(build_output,synctex_name_ref,file_ref,add_quotes,io_mode_ref);
+ 			}
++			free(build_output);
+ 		}
+ 		return -1;
+ 	}
+--- evince-3.28.2/cut-n-paste/synctex/synctex_parser_utils.c
++++ evince-3.28.2/cut-n-paste/synctex/synctex_parser_utils.c
+@@ -292,6 +292,7 @@ char * _synctex_merge_strings(const char
+ 		size_t len = strlen(temp);
+ 		if(UINT_MAX-len<size) {
+ 			_synctex_error("!  _synctex_merge_strings: Capacity exceeded.");
++			va_end(arg);
+ 			return NULL;
+ 		}
+ 		size+=len;
+@@ -312,6 +313,7 @@ char * _synctex_merge_strings(const char
+ 						_synctex_error("!  _synctex_merge_strings: Copy problem");
+ 						free(result);
+ 						result = NULL;
++						va_end(arg);
+ 						return NULL;
+ 					}
+ 					dest += size;
+@@ -393,7 +395,7 @@ int _synctex_get_name(const char * outpu
+ 					free(dir_name);
+ 					dir_name = NULL;
+ 					free(core_name);
+-					dir_name = NULL;
++					core_name = NULL;
+ 					return -2;
+ 				}
+ 				dir_name[size] = '\0';
+@@ -487,6 +489,12 @@ int _synctex_get_name(const char * outpu
+             /* set up the returned values */
+             * synctex_name_ref = synctex_name;
+             * io_mode_ref = io_mode;
++			free(dir_name);
++			dir_name = NULL;
++			free(core_name);
++			core_name = NULL;
++			free(quoted_core_name);
++			quoted_core_name = NULL;
+ 			return 0;
+ 		}
+ 		return -1;/*  bad argument */
+--- evince-3.28.2/cut-n-paste/unarr/rar/filter-rar.c
++++ evince-3.28.2/cut-n-paste/unarr/rar/filter-rar.c
+@@ -273,8 +273,10 @@ static struct RARFilter *rar_create_filt
+     filter->prog = prog;
+     filter->globaldatalen = globaldatalen > RARProgramSystemGlobalSize ? globaldatalen : RARProgramSystemGlobalSize;
+     filter->globaldata = calloc(1, filter->globaldatalen);
+-    if (!filter->globaldata)
++    if (!filter->globaldata) {
++        free (filter);
+         return NULL;
++    }
+     if (globaldata)
+         memcpy(filter->globaldata, globaldata, globaldatalen);
+     if (registers)
+--- evince-3.28.2/libdocument/ev-document.c
++++ evince-3.28.2/libdocument/ev-document.c
+@@ -496,6 +496,9 @@ ev_document_load_stream (EvDocument
+         g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+ 
+         klass = EV_DOCUMENT_GET_CLASS (document);
++
++        g_return_val_if_fail (klass != NULL, FALSE);
++
+         if (!klass->load_stream) {
+                 g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
+                                      "Backend does not support loading from stream");
+@@ -544,6 +547,9 @@ ev_document_load_gfile (EvDocument
+         g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+ 
+         klass = EV_DOCUMENT_GET_CLASS (document);
++
++        g_return_val_if_fail (klass != NULL, FALSE);
++
+         if (!klass->load_gfile) {
+                 g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
+                                      "Backend does not support loading from GFile");
+@@ -867,6 +873,9 @@ ev_document_get_backend_info (EvDocument
+ 	g_return_val_if_fail (EV_IS_DOCUMENT (document), FALSE);
+ 
+ 	klass = EV_DOCUMENT_GET_CLASS (document);
++
++        g_return_val_if_fail (klass != NULL, FALSE);
++
+ 	if (klass->get_backend_info == NULL)
+ 		return FALSE;
+ 
+--- evince-3.28.2/libview/ev-pixbuf-cache.c
++++ evince-3.28.2/libview/ev-pixbuf-cache.c
+@@ -337,6 +337,11 @@ job_finished_cb (EvJob         *job,
+ 
+ 	job_info = find_job_cache (pixbuf_cache, job_render->page);
+ 
++	if (job_info == NULL) {
++		g_warning ("Job info not found.");
++		return;
++	}
++
+ 	if (ev_job_is_failed (job)) {
+ 		job_info->job = NULL;
+ 		g_object_unref (job);
+@@ -721,6 +726,11 @@ add_job_if_needed (EvPixbufCache *pixbuf
+ 	gint device_scale = get_device_scale (pixbuf_cache);
+ 	gint width, height;
+ 
++	if (job_info == NULL) {
++		g_warning ("Adding job with NULL info.");
++		return;
++	}
++
+ 	if (job_info->job)
+ 		return;
+ 
+--- evince-3.28.2/libview/ev-print-operation.c
++++ evince-3.28.2/libview/ev-print-operation.c
+@@ -181,6 +181,7 @@ ev_print_operation_set_current_page (EvP
+ 	EvPrintOperationClass *class = EV_PRINT_OPERATION_GET_CLASS (op);
+ 
+ 	g_return_if_fail (EV_IS_PRINT_OPERATION (op));
++	g_return_if_fail (class != NULL);
+ 	g_return_if_fail (current_page >= 0);
+ 
+ 	class->set_current_page (op, current_page);
+@@ -193,6 +194,7 @@ ev_print_operation_set_print_settings (E
+ 	EvPrintOperationClass *class = EV_PRINT_OPERATION_GET_CLASS (op);
+ 
+ 	g_return_if_fail (EV_IS_PRINT_OPERATION (op));
++	g_return_if_fail (class != NULL);
+ 	g_return_if_fail (GTK_IS_PRINT_SETTINGS (print_settings));
+ 
+ 	class->set_print_settings (op, print_settings);
+@@ -210,6 +212,7 @@ ev_print_operation_get_print_settings (E
+ 	EvPrintOperationClass *class = EV_PRINT_OPERATION_GET_CLASS (op);
+ 
+ 	g_return_val_if_fail (EV_IS_PRINT_OPERATION (op), NULL);
++	g_return_val_if_fail (class != NULL, NULL);
+ 
+ 	return class->get_print_settings (op);
+ }
+@@ -221,6 +224,7 @@ ev_print_operation_set_default_page_setu
+ 	EvPrintOperationClass *class = EV_PRINT_OPERATION_GET_CLASS (op);
+ 
+ 	g_return_if_fail (EV_IS_PRINT_OPERATION (op));
++	g_return_if_fail (class != NULL);
+ 	g_return_if_fail (GTK_IS_PAGE_SETUP (page_setup));
+ 
+ 	class->set_default_page_setup (op, page_setup);
+@@ -238,6 +242,7 @@ ev_print_operation_get_default_page_setu
+ 	EvPrintOperationClass *class = EV_PRINT_OPERATION_GET_CLASS (op);
+ 
+ 	g_return_val_if_fail (EV_IS_PRINT_OPERATION (op), NULL);
++	g_return_val_if_fail (class != NULL, NULL);
+ 
+ 	return class->get_default_page_setup (op);
+ }
+@@ -249,6 +254,7 @@ ev_print_operation_set_job_name (EvPrint
+ 	EvPrintOperationClass *class = EV_PRINT_OPERATION_GET_CLASS (op);
+ 
+ 	g_return_if_fail (EV_IS_PRINT_OPERATION (op));
++	g_return_if_fail (class != NULL);
+ 	g_return_if_fail (job_name != NULL);
+ 
+ 	class->set_job_name (op, job_name);
+@@ -260,6 +266,7 @@ ev_print_operation_get_job_name (EvPrint
+ 	EvPrintOperationClass *class = EV_PRINT_OPERATION_GET_CLASS (op);
+ 
+ 	g_return_val_if_fail (EV_IS_PRINT_OPERATION (op), NULL);
++	g_return_val_if_fail (class != NULL, NULL);
+ 
+ 	return class->get_job_name (op);
+ }
+@@ -271,6 +278,7 @@ ev_print_operation_run (EvPrintOperation
+ 	EvPrintOperationClass *class = EV_PRINT_OPERATION_GET_CLASS (op);
+ 
+ 	g_return_if_fail (EV_IS_PRINT_OPERATION (op));
++	g_return_if_fail (class != NULL);
+ 
+ 	class->run (op, parent);
+ }
+@@ -281,6 +289,7 @@ ev_print_operation_cancel (EvPrintOperat
+ 	EvPrintOperationClass *class = EV_PRINT_OPERATION_GET_CLASS (op);
+ 
+ 	g_return_if_fail (EV_IS_PRINT_OPERATION (op));
++	g_return_if_fail (class != NULL);
+ 
+ 	class->cancel (op);
+ }
+@@ -292,6 +301,7 @@ ev_print_operation_get_error (EvPrintOpe
+ 	EvPrintOperationClass *class = EV_PRINT_OPERATION_GET_CLASS (op);
+ 
+ 	g_return_if_fail (EV_IS_PRINT_OPERATION (op));
++	g_return_if_fail (class != NULL);
+ 
+ 	class->get_error (op, error);
+ }
+@@ -303,6 +313,7 @@ ev_print_operation_set_embed_page_setup
+ 	EvPrintOperationClass *class = EV_PRINT_OPERATION_GET_CLASS (op);
+ 
+ 	g_return_if_fail (EV_IS_PRINT_OPERATION (op));
++	g_return_if_fail (class != NULL);
+ 
+ 	class->set_embed_page_setup (op, embed);
+ }
+@@ -313,6 +324,7 @@ ev_print_operation_get_embed_page_setup
+ 	EvPrintOperationClass *class = EV_PRINT_OPERATION_GET_CLASS (op);
+ 
+ 	g_return_val_if_fail (EV_IS_PRINT_OPERATION (op), FALSE);
++	g_return_val_if_fail (class != NULL, FALSE);
+ 
+ 	return class->get_embed_page_setup (op);
+ }
+--- evince-3.28.2/libview/ev-timeline.c
++++ evince-3.28.2/libview/ev-timeline.c
+@@ -289,9 +289,15 @@ ev_timeline_new (guint duration)
+ void
+ ev_timeline_start (EvTimeline *timeline)
+ {
++	EvTimelineClass *klass;
++
+ 	g_return_if_fail (EV_IS_TIMELINE (timeline));
+ 
+-	EV_TIMELINE_GET_CLASS (timeline)->start (timeline);
++	klass = EV_TIMELINE_GET_CLASS (timeline);
++
++	g_return_if_fail (klass != NULL);
++
++	klass->start (timeline);
+ }
+ 
+ void
+--- evince-3.28.2/libview/ev-view.c
++++ evince-3.28.2/libview/ev-view.c
+@@ -1147,7 +1147,7 @@ ensure_rectangle_is_visible (EvView *vie
+ 	if (rect->x < adj_value) {
+ 		value = MAX (gtk_adjustment_get_lower (adjustment), rect->x - MARGIN);
+ 		gtk_adjustment_set_value (view->hadjustment, value);
+-	} else if (rect->x + rect->height > adj_value + allocation.width) {
++	} else if (rect->x + rect->width > adj_value + allocation.width) {
+ 		value = MIN (gtk_adjustment_get_upper (adjustment), rect->x + rect->width -
+ 			     allocation.width + MARGIN);
+ 		gtk_adjustment_set_value (view->hadjustment, value);
+@@ -1777,6 +1777,11 @@ goto_fitv_dest (EvView *view, EvLinkDest
+ 
+ 	page = ev_link_dest_get_page (dest);
+ 
++	if (page < 0) {
++		g_warning ("Link does not contain a page.");
++		return;
++	}
++
+ 	left = ev_link_dest_get_left (dest, &change_left);
+ 	doc_point.x = change_left ? left : 0;
+ 	doc_point.y = 0;
+@@ -1813,6 +1818,11 @@ goto_fith_dest (EvView *view, EvLinkDest
+ 
+ 	page = ev_link_dest_get_page (dest);
+ 
++	if (page < 0) {
++		g_warning ("Link does not contain a page.");
++		return;
++	}
++
+ 	top = ev_link_dest_get_top (dest, &change_top);
+ 	doc_point.x = 0;
+ 	doc_point.y = change_top ? top : 0;
+@@ -1846,6 +1856,11 @@ goto_fit_dest (EvView *view, EvLinkDest
+ 
+ 	page = ev_link_dest_get_page (dest);
+ 
++	if (page < 0) {
++		g_warning ("Link does not contain a page.");
++		return;
++	}
++
+ 	if (view->allow_links_change_zoom) {
+ 		double zoom;
+ 		gdouble doc_width, doc_height;
+--- evince-3.28.2/libview/ev-view-presentation.c
++++ evince-3.28.2/libview/ev-view-presentation.c
+@@ -448,7 +448,7 @@ ev_view_presentation_update_current_page
+ {
+ 	gint jump;
+ 
+-	if (page < 0 || page >= ev_document_get_n_pages (pview->document))
++	if (page >= ev_document_get_n_pages (pview->document))
+ 		return;
+ 
+ 	ev_view_presentation_animation_cancel (pview);
+--- evince-3.28.2/shell/ev-sidebar.c
++++ evince-3.28.2/shell/ev-sidebar.c
+@@ -471,18 +471,19 @@ ev_sidebar_add_page (EvSidebar   *ev_sid
+ 
+ 
+ 	/* Set the first item added as active */
+-	gtk_tree_model_get_iter_first (ev_sidebar->priv->page_model, &iter);
+-	gtk_tree_model_get (ev_sidebar->priv->page_model,
+-			    &iter,
+-			    PAGE_COLUMN_TITLE, &label_title,
+-			    PAGE_COLUMN_NOTEBOOK_INDEX, &index,
+-			    -1);
++	if (gtk_tree_model_get_iter_first (ev_sidebar->priv->page_model, &iter)) {
++		gtk_tree_model_get (ev_sidebar->priv->page_model,
++				    &iter,
++				    PAGE_COLUMN_TITLE, &label_title,
++				    PAGE_COLUMN_NOTEBOOK_INDEX, &index,
++				    -1);
+ 
+-	gtk_menu_set_active (GTK_MENU (ev_sidebar->priv->menu), index);
+-	gtk_label_set_text (GTK_LABEL (ev_sidebar->priv->label), label_title);
+-	gtk_notebook_set_current_page (GTK_NOTEBOOK (ev_sidebar->priv->notebook),
+-				       index);
+-	g_free (label_title);
++		gtk_menu_set_active (GTK_MENU (ev_sidebar->priv->menu), index);
++		gtk_label_set_text (GTK_LABEL (ev_sidebar->priv->label), label_title);
++		gtk_notebook_set_current_page (GTK_NOTEBOOK (ev_sidebar->priv->notebook),
++					       index);
++		g_free (label_title);
++	}
+ }
+ 
+ static gboolean
+--- evince-3.28.2/shell/ev-sidebar-thumbnails.c
++++ evince-3.28.2/shell/ev-sidebar-thumbnails.c
+@@ -658,11 +658,11 @@ ev_sidebar_thumbnails_fill_model (EvSide
+ 	int i;
+ 	gint prev_width = -1;
+ 	gint prev_height = -1;
++	cairo_surface_t *loading_icon = NULL;
+ 
+ 	for (i = 0; i < sidebar_thumbnails->priv->n_pages; i++) {
+ 		gchar     *page_label;
+ 		gchar     *page_string;
+-		cairo_surface_t *loading_icon = NULL;
+ 		gint       width, height;
+ 
+ 		page_label = ev_document_get_page_label (priv->document, i);
+--- evince-3.28.2/shell/ev-window.c
++++ evince-3.28.2/shell/ev-window.c
+@@ -3121,10 +3121,10 @@ ev_window_load_print_settings_from_metad
+ 	for (i = 0; i < G_N_ELEMENTS (document_print_settings); i++) {
+ 		gchar *value = NULL;
+ 
+-		ev_metadata_get_string (window->priv->metadata,
+-					document_print_settings[i], &value);
+-		gtk_print_settings_set (print_settings,
+-					document_print_settings[i], value);
++		if (ev_metadata_get_string (window->priv->metadata,
++					    document_print_settings[i], &value))
++			gtk_print_settings_set (print_settings,
++						document_print_settings[i], value);
+ 	}
+ }
+ 
+@@ -4705,12 +4705,16 @@ ev_window_cmd_bookmarks_add (GSimpleActi
+ 	gchar     *page_label;
+ 
+ 	bm.page = ev_document_model_get_page (window->priv->model);
+-	page_label = ev_document_get_page_label (window->priv->document, bm.page);
+-	bm.title = g_strdup_printf (_("Page %s"), page_label);
+-	g_free (page_label);
++	if (bm.page >= 0) {
++		page_label = ev_document_get_page_label (window->priv->document, bm.page);
++		bm.title = g_strdup_printf (_("Page %s"), page_label);
++		g_free (page_label);
+ 
+-	/* EvBookmarks takes ownership of bookmark */
+-	ev_bookmarks_add (window->priv->bookmarks, &bm);
++		/* EvBookmarks takes ownership of bookmark */
++		ev_bookmarks_add (window->priv->bookmarks, &bm);
++	} else {
++		g_warning ("Bookmarking of a page failed.");
++	}
+ }
+ 
+ static void
